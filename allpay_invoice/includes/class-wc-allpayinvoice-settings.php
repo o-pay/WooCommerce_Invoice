@@ -20,7 +20,7 @@ class WC_ALLPayinvoice_Settings extends WC_Settings_Page {
 	public function __construct() {
 
 		$this->id    = 'allpayinvoice';
-		$this->label = __( 'allPay電子發票', 'woocommerce-allpayinvoice' );
+		$this->label = __( 'O\'Pay電子發票', 'woocommerce-allpayinvoice' );
 
 		parent::__construct();
 

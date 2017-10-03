@@ -1,14 +1,14 @@
 <?php
 /**
- * @copyright  Copyright © 2017 O'Pay Electronic Payment Co., Ltd.(https://www.allpay.com.tw)
- * @version 1.1.0801
+ * @copyright  Copyright © 2017 O'Pay Electronic Payment Co., Ltd.(https://www.opay.tw)
+ * @version 1.1.0911
  *
- * Plugin Name: allPay Invoice
- * Plugin URI: https://www.allpay.com.tw
- * Description: allPay Invoice For WooCommerce
+ * Plugin Name: WooCommerce O'Pay Invoice
+ * Plugin URI: https://www.opay.tw
+ * Description: O'Pay Invoice For WooCommerce
  * Author: O'Pay Electronic Payment Co., Ltd.
- * Author URI: https://www.allpay.com.tw
- * Version: 1.1.0801
+ * Author URI: https://www.opay.tw
+ * Version: 1.1.0911
  * Text Domain: woocommerce-allpayinvoice
  * Domain Path: /i18n/languages/
  */
@@ -483,21 +483,26 @@ class WC_ALLPayinvoice {
                 $nOrder_Status 	= $oOrder_Obj->get_status($post->ID);
                 $aOrder_Info 	= get_post_meta($post->ID);
 
+                // 付款成功次數 第一次付款或沒有此欄位則設定為空值
+	       	$nTotalSuccessTimes = ( isset($aOrder_Info['_total_success_times'][0]) && $aOrder_Info['_total_success_times'][0] == '' ) ? '' :  $aOrder_Info['_total_success_times'][0] ;
+
                 $aConfig_Invoice = get_option('wc_allpayinvoice_active_model') ;
 
                 if($aConfig_Invoice['wc_allpay_invoice_enabled'] == 'enable')
                 {	
+	                $_allpay_invoice_status = '_allpay_invoice_status'.$nTotalSuccessTimes ;
+
 	                if($aConfig_Invoice['wc_allpay_invoice_auto'] == 'manual')
 	                {
 		                // 尚未開立發票且訂單狀態為處理中
-		                if( ( !isset($aOrder_Info['_allpay_invoice_status'][0]) || $aOrder_Info['_allpay_invoice_status'][0] == 0 ) && $nOrder_Status == 'processing' )
+		                if( ( !isset($aOrder_Info[$_allpay_invoice_status][0]) || $aOrder_Info[$_allpay_invoice_status][0] == 0 ) && $nOrder_Status == 'processing' )
 		                {
 		                	// 產生按鈕
 		                	echo "<p ><input class='button' type='button' id='invoice_button' onclick='send_orderid_to_gen_invoice_allpay(".$post->ID.");' value='開立發票' /></p>";
 		                }
 	                }
 
-	                if( isset($aOrder_Info['_allpay_invoice_status'][0]) && $aOrder_Info['_allpay_invoice_status'][0] == 1 )
+	                if( isset($aOrder_Info[$_allpay_invoice_status][0]) && $aOrder_Info[$_allpay_invoice_status][0] == 1 )
 	                {
 	                	// 產生按鈕
 	                	echo "<p ><input class='button' type='button' id='invoice_button_issue_invalid' onclick='send_orderid_to_issue_invalid_allpay(".$post->ID.");' value='作廢發票' /></p>";
@@ -517,22 +522,51 @@ class WC_ALLPayinvoice {
 
 	       	$aOrder_Info 	= get_post_meta($nOrder_Id);
 
+	       	// 付款成功次數 第一次付款或沒有此欄位則設定為空值
+	       	$nTotalSuccessTimes = ( isset($aOrder_Info['_total_success_times'][0]) && $aOrder_Info['_total_success_times'][0] == '' ) ? '' :  $aOrder_Info['_total_success_times'][0] ;
+
 	       	$bInvoice_Enable = false ;
+	       	$sInvoiceRemark = '' ; 
 
 	       	if($sMode == 'manual')
 	       	{
-	       		if( ( !isset($aOrder_Info['_allpay_invoice_status'][0]) || $aOrder_Info['_allpay_invoice_status'][0] == 0 ) && $nOrder_Status == 'processing' )
-	        	{
-	        		$bInvoice_Enable = true ;
-	        	}
+			if( $aOrder_Info['_payment_method'][0] == 'allpay_dca' || $aOrder_Info['_payment_method'][0] == 'ecpay_dca' ) // 定期定額 20170922 wesley
+			{
+				$_allpay_invoice_status = '_allpay_invoice_status'.$nTotalSuccessTimes ;
+
+				if( ( !isset($aOrder_Info[$_allpay_invoice_status][0]) || $aOrder_Info[$_allpay_invoice_status][0] == 0 ) && $nOrder_Status == 'processing' )
+		        	{
+		        		$bInvoice_Enable = true ;
+		        	}
+			}
+			else
+			{
+				if( ( !isset($aOrder_Info['_allpay_invoice_status'][0]) || $aOrder_Info['_allpay_invoice_status'][0] == 0 ) && $nOrder_Status == 'processing' )
+		        	{
+		        		$bInvoice_Enable = true ;
+		        	}
+			}
 	       	}
 	       	elseif($sMode == 'auto')
 	       	{
-	       		if( ( !isset($aOrder_Info['_allpay_invoice_status'][0]) || $aOrder_Info['_allpay_invoice_status'][0] == 0 ))
-	        	{
-	        		$bInvoice_Enable = true ;
-	        	}
-	       	}
+	       		if( $aOrder_Info['_payment_method'][0] == 'allpay_dca' || $aOrder_Info['_payment_method'][0] == 'ecpay_dca' ) // 定期定額 20170922 wesley
+			{
+				$_allpay_invoice_status = '_allpay_invoice_status'.$nTotalSuccessTimes ;
+
+
+				if( ( !isset($aOrder_Info[$_allpay_invoice_status][0]) || $aOrder_Info[$_allpay_invoice_status][0] == 0 ))
+		        	{
+		        		$bInvoice_Enable = true ;
+		        	}
+			}
+			else
+			{
+				if( ( !isset($aOrder_Info['_allpay_invoice_status'][0]) || $aOrder_Info['_allpay_invoice_status'][0] == 0 ))
+		        	{
+		        		$bInvoice_Enable = true ;
+		        	}
+			}
+	       	}	
 
 	        // 尚未開立發票且訂單狀態為處理中
 	        if($bInvoice_Enable)
@@ -636,26 +670,33 @@ class WC_ALLPayinvoice {
 				// 取得商品資訊
 				$aItems_Tmp = array();
 				$aItems     = array();
-                $aItems_Tmp = $oOrder_Obj->get_items();
+		                $aItems_Tmp = $oOrder_Obj->get_items();
 
-                global $woocommerce;
-                if ( version_compare( $woocommerce->version, '3.0', ">=" ) ) {
-                    foreach($aItems_Tmp as $key1 => $value1)
-                    {
-                        $aItems[$key1]['ItemName'] = $value1['name']; // 商品名稱 ItemName
-                        $aItems[$key1]['ItemCount'] = $value1['quantity']; // 數量 ItemCount
-                        $aItems[$key1]['ItemAmount'] = round($value1['total'] + $value1['total_tax']); // 小計 ItemAmount
-                        $aItems[$key1]['ItemPrice'] = $aItems[$key1]['ItemAmount'] / $aItems[$key1]['ItemCount'] ; // 單價 ItemPrice
-                    }
-                } else {
-                    foreach($aItems_Tmp as $key1 => $value1)
-                    {
-                        $aItems[$key1]['ItemName'] = $value1['name']; // 商品名稱 ItemName
-                        $aItems[$key1]['ItemCount'] = $value1['item_meta']['_quantity'][0]; // 數量 ItemCount
-                        $aItems[$key1]['ItemAmount'] = round($value1['item_meta']['_line_total'][0] + $value1['item_meta']['_line_tax'][0]); // 小計 ItemAmount
-                        $aItems[$key1]['ItemPrice'] = $aItems[$key1]['ItemAmount'] / $aItems[$key1]['ItemCount'] ; // 單價 ItemPrice
-                    }
-                }
+		                global $woocommerce;
+		                if ( version_compare( $woocommerce->version, '3.0', ">=" ) ) {
+		                    foreach($aItems_Tmp as $key1 => $value1)
+		                    {
+		                        $aItems[$key1]['ItemName'] = $value1['name']; // 商品名稱 ItemName
+		                        $aItems[$key1]['ItemCount'] = $value1['quantity']; // 數量 ItemCount
+		                        $aItems[$key1]['ItemAmount'] = round($value1['total'] + $value1['total_tax']); // 小計 ItemAmount
+		                        $aItems[$key1]['ItemPrice'] = $aItems[$key1]['ItemAmount'] / $aItems[$key1]['ItemCount'] ; // 單價 ItemPrice
+		                    }
+		                } else {
+		                    foreach($aItems_Tmp as $key1 => $value1)
+		                    {
+		                        $aItems[$key1]['ItemName'] = $value1['name']; // 商品名稱 ItemName
+		                        $aItems[$key1]['ItemCount'] = isset($value1['item_meta']['_quantity'][0])
+		                         ? $value1['item_meta']['_quantity'][0] : '' ; // 數量 ItemCount
+		                      
+		                        if(empty($aItems[$key1]['ItemCount']))
+		                        {
+		                        	$aItems[$key1]['ItemCount'] = isset($value1['item_meta']['_qty'][0]) ? $value1['item_meta']['_qty'][0] : '' ; // 數量 ItemCount
+		                        }
+
+		                        $aItems[$key1]['ItemAmount'] = round($value1['item_meta']['_line_total'][0] + $value1['item_meta']['_line_tax'][0]); // 小計 ItemAmount
+		                        $aItems[$key1]['ItemPrice'] = $aItems[$key1]['ItemAmount'] / $aItems[$key1]['ItemCount'] ; // 單價 ItemPrice
+		                    }
+		                }
 
 				foreach($aItems as $key2 => $value2)
 		                {
@@ -675,13 +716,20 @@ class WC_ALLPayinvoice {
 				// 判斷測試模式
 				if($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode')
 				{
-					$RelateNumber = date('YmdHis') . $nOrder_Id ; 
+					$RelateNumber = date('YmdHis') . $nOrder_Id . $nTotalSuccessTimes; 
 					//$RelateNumber = 'ECPAY'. date('YmdHis') . rand(1000000000,2147483647) ; // 產生測試用自訂訂單編號 // debug mode
 
 				}
 				else
 				{
-					$RelateNumber = $nOrder_Id ;
+					$RelateNumber = $nOrder_Id . $nTotalSuccessTimes ;
+				}
+
+				// 判斷是否信用卡後四碼欄位有值，如果有值則寫入備註中
+				$nCard4no = get_post_meta($nOrder_Id, 'card4no', true); 	// 信用卡後四碼
+				if(!empty($nCard4no))
+				{
+					$sInvoiceRemark .= $nCard4no ;
 				}
 
 				$allpay_invoice->Send['RelateNumber'] 			= $RelateNumber ;
@@ -699,7 +747,7 @@ class WC_ALLPayinvoice {
 				$allpay_invoice->Send['CarruerNum'] 			= $nCarruerNum ;
 				$allpay_invoice->Send['TaxType'] 			= 1 ;
 				$allpay_invoice->Send['SalesAmount'] 			= $nOrder_Amount_Total ;
-				$allpay_invoice->Send['InvoiceRemark'] 			= '' ;	
+				$allpay_invoice->Send['InvoiceRemark'] 			= $sInvoiceRemark ;	
 				$allpay_invoice->Send['InvType'] 			= '07';
 				$allpay_invoice->Send['vat'] 				= '' ;
 				
@@ -725,8 +773,18 @@ class WC_ALLPayinvoice {
 			if(isset($aReturn_Info['RtnCode']) && $aReturn_Info['RtnCode'] == 1)
 			{
 				$nOrder_Invoice_Status 				= 1 ; 					// 發票已經開立
-				$sOrder_Invoice_Field_Name 			= '_allpay_invoice_status' ; 		// 欄位名稱
-				$sOrder_Invoice_Num_Field_Name 			= '_allpay_invoice_number' ; 		// 欄位名稱 記錄發票號碼
+
+				if(empty($nTotalSuccessTimes))
+				{
+					$sOrder_Invoice_Field_Name 	= '_allpay_invoice_status' ; 	// 欄位名稱 記錄狀態
+					$sOrder_Invoice_Num_Field_Name 	= '_allpay_invoice_number' ; 	// 欄位名稱 記錄發票號碼
+				}
+				else
+				{
+					$sOrder_Invoice_Field_Name 	= '_allpay_invoice_status'.$nTotalSuccessTimes ; 	// 欄位 記錄狀態
+					$sOrder_Invoice_Num_Field_Name 	= '_allpay_invoice_number'.$nTotalSuccessTimes ; 	// 欄位名稱 記錄發票號碼
+				}
+
 
 				// 異動已經開立發票的狀態 1.已經開立 0.尚未開立
 				update_post_meta($nOrder_Id, $sOrder_Invoice_Field_Name, $nOrder_Invoice_Status );
@@ -743,17 +801,17 @@ class WC_ALLPayinvoice {
 	        else
 	        {
 	     
-	        	if($aOrder_Info['_allpay_invoice_status'][0] == 1)
-	        	{
-	        		if($sMode == 'manual')
-				{
-					return '發票已經完成開立，請重新整理畫面' ;
-				}
-				else
-				{
-					$oOrder_Obj->add_order_note('發票已經完成開立，請重新整理畫面');
-				}
-	        	}
+	   //      	if($aOrder_Info['_allpay_invoice_status'][0] == 1)
+	   //      	{
+	   //      		if($sMode == 'manual')
+				// {
+				// 	return '發票已經完成開立，請重新整理畫面' ;
+				// }
+				// else
+				// {
+				// 	$oOrder_Obj->add_order_note('發票已經完成開立，請重新整理畫面');
+				// }
+	   //      	}
 
 	        	if($nOrder_Status != 'processing' )
 	        	{
@@ -772,7 +830,7 @@ class WC_ALLPayinvoice {
 	// 自動開立 
 	function allpay_auto_invoice($nOrder_Id, $SimulatePaid = 0 )
 	{
-		global $woocommerce, $post;	
+		global $woocommerce, $post;
 
 		// 判斷是否啟動自動開立
 		$aConfig_Invoice = get_option('wc_allpayinvoice_active_model') ;
@@ -794,6 +852,8 @@ class WC_ALLPayinvoice {
 				// 判斷是否在發票測試環境
 				if($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode')
 				{
+					
+
 					$this->gen_invoice($nOrder_Id, 'auto');
 				}
 			}
@@ -813,11 +873,18 @@ class WC_ALLPayinvoice {
 
 	       	$aOrder_Info 	= get_post_meta($nOrder_Id);
 
-	        // 已經開立發票才允許
-	        if( isset($aOrder_Info['_allpay_invoice_status'][0]) && $aOrder_Info['_allpay_invoice_status'][0] == 1 )
+	       	// 付款成功最後的一次 第一次付款或沒有此欄位則設定為空值 wesley
+	       	$nTotalSuccessTimes = ( isset($aOrder_Info['_total_success_times'][0]) && $aOrder_Info['_total_success_times'][0] == '' ) ? '' :  $aOrder_Info['_total_success_times'][0] ;
+
+	       	 // 已經開立發票才允許(找出最後一次) wesley
+	        $_allpay_invoice_status = '_allpay_invoice_status'.$nTotalSuccessTimes ;
+
+	       if( isset($aOrder_Info[$_allpay_invoice_status][0]) && $aOrder_Info[$_allpay_invoice_status][0] == 1 )
 	        {
 	        	// 發票號碼
-	 		$sInvoice_Number	= get_post_meta($nOrder_Id, '_allpay_invoice_number', true) ; 	
+	        	$_allpay_invoice_number = '_allpay_invoice_number'.$nTotalSuccessTimes ;
+
+	 		$sInvoice_Number	= get_post_meta($nOrder_Id, $_allpay_invoice_number, true) ; 	
 
 	 		// 取得發票介接參數設定
 	 		$aConfig_Invoice 	= get_option('wc_allpayinvoice_active_model') ;
@@ -879,8 +946,17 @@ class WC_ALLPayinvoice {
 			if(isset($aReturn_Info['RtnCode']) && $aReturn_Info['RtnCode'] == 1)
 			{
 				$nOrder_Invoice_Status 		= 0 ; // 發票作廢
-				$sOrder_Invoice_Field_Name 	= '_allpay_invoice_status' ; // 欄位名稱
-				$sOrder_Invoice_Num_Field_Name 	= '_allpay_invoice_number' ; // 欄位名稱 記錄發票號碼 
+
+				if(empty($nTotalSuccessTimes))
+				{
+					$sOrder_Invoice_Field_Name 	= '_allpay_invoice_status' ; 	// 欄位名稱 記錄狀態
+					$sOrder_Invoice_Num_Field_Name 	= '_allpay_invoice_number' ; 	// 欄位名稱 記錄發票號碼
+				}
+				else
+				{
+					$sOrder_Invoice_Field_Name 	= '_allpay_invoice_status'.$nTotalSuccessTimes ; 	// 欄位 記錄狀態
+					$sOrder_Invoice_Num_Field_Name 	= '_allpay_invoice_number'.$nTotalSuccessTimes ; 	// 欄位名稱 記錄發票號碼
+				}
 
 				// 異動已經開立發票的狀態 1.已經開立 0.尚未開立
 				update_post_meta($nOrder_Id, $sOrder_Invoice_Field_Name, $nOrder_Invoice_Status );
