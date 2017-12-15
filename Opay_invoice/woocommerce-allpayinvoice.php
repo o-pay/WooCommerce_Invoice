@@ -614,7 +614,7 @@ class WC_ALLPayinvoice {
 
 	 		$nCarruerNum		= get_post_meta($nOrder_Id, '_billing_carruer_num', true) ; 		// 載具編號
 
-	 		$Invoice_Url = ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.allpay.com.tw/Invoice/Issue'  : 'https://einvoice.allpay.com.tw/Invoice/Issue' ;
+	 		$Invoice_Url = ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.opay.tw/Invoice/Issue'  : 'https://einvoice.opay.tw/Invoice/Issue' ;
 	 		
 
 	 		// 寫入發票資訊到備註中
@@ -893,7 +893,7 @@ class WC_ALLPayinvoice {
 	 		$HashIV 		= $aConfig_Invoice['wc_allpay_invoice_hashiv'] ;
 	 		$Invoice_Url 		= '' ;
 
-	 		$Invoice_Url 		= ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.allpay.com.tw/Invoice/IssueInvalid'  : 'https://einvoice.allpay.com.tw/Invoice/IssueInvalid' ;
+	 		$Invoice_Url 		= ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.opay.tw/Invoice/IssueInvalid'  : 'https://einvoice.opay.tw/Invoice/IssueInvalid' ;
 
 	 		// 寫入發票資訊到備註中
 	 		$sInvoice_Info = '' ;
