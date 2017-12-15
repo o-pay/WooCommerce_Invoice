@@ -1,14 +1,14 @@
 <?php
 /**
  * @copyright  Copyright © 2017 O'Pay Electronic Payment Co., Ltd.(https://www.opay.tw)
- * @version 1.1.0911
+ * @version 1.1.1207
  *
  * Plugin Name: WooCommerce O'Pay Invoice
  * Plugin URI: https://www.opay.tw
  * Description: O'Pay Invoice For WooCommerce
  * Author: O'Pay Electronic Payment Co., Ltd.
  * Author URI: https://www.opay.tw
- * Version: 1.1.0911
+ * Version: 1.1.1207
  * Text Domain: woocommerce-allpayinvoice
  * Domain Path: /i18n/languages/
  */
@@ -51,7 +51,7 @@ function wc_allpayinvoice_render_outdated_wc_version_notice() {
 
 	$message = sprintf(
 		/* translators: %1$s and %2$s are <strong> tags. %3$s and %4$s are <a> tags */
-		__( '%1$sWooCommerce ALLPay Invoice is inactive.%2$s This version requires WooCommerce 2.5.5 or newer. Please %3$supdate WooCommerce to version 2.4.13 or newer%4$s', 'woocommerce-allpayinvoice' ),
+		__( '%1$sWooCommerce O\'Pay Invoice is inactive.%2$s This version requires WooCommerce 2.5.5 or newer. Please %3$supdate WooCommerce to version 2.4.13 or newer%4$s', 'woocommerce-allpayinvoice' ),
 		'<strong>',
 		'</strong>',
 		'<a href="' . admin_url( 'plugins.php' ) . '">',
@@ -71,7 +71,7 @@ function wc_allpayinvoice_render_wc_inactive_notice() {
 
 	$message = sprintf(
 		/* translators: %1$s and %2$s are <strong> tags. %3$s and %4$s are <a> tags */
-		__( '%1$sWooCommerce ALLPay Invoice is inactive%2$s as it requires WooCommerce. Please %3$sactivate WooCommerce version 2.5.5 or newer%4$s', 'woocommerce-allpayinvoice' ),
+		__( '%1$sWooCommerce O\'Pay Invoice is inactive%2$s as it requires WooCommerce. Please %3$sactivate WooCommerce version 2.5.5 or newer%4$s', 'woocommerce-allpayinvoice' ),
 		'<strong>',
 		'</strong>',
 		'<a href="' . admin_url( 'plugins.php' ) . '">',
@@ -90,7 +90,7 @@ function wc_allpayinvoice_wc_invoice_inactive_notice() {
 	$message = sprintf(
 		/* translators: %1$s and %2$s are <strong> tags. %3$s and %4$s are <a> tags */
 
-		__( '%1s 無法與ECPay電子發票無法並存，請停用其中一項目%2$s %3$s %4$s', 'woocommerce-allpayinvoice' ),
+		__( '%1$sO\'Pay電子發票與ECPay電子發票無法並存，請停用其中一項目%2$s %3$s %4$s', 'woocommerce-allpayinvoice' ),
 		'<strong>',
 		'</strong>',
 		'<a href="' . admin_url( 'plugins.php' ) . '">',
@@ -614,7 +614,7 @@ class WC_ALLPayinvoice {
 
 	 		$nCarruerNum		= get_post_meta($nOrder_Id, '_billing_carruer_num', true) ; 		// 載具編號
 
-	 		$Invoice_Url = ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.opay.tw/Invoice/Issue'  : 'https://einvoice.opay.tw/Invoice/Issue' ;
+	 		$Invoice_Url = ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.allpay.com.tw/Invoice/Issue'  : 'https://einvoice.allpay.com.tw/Invoice/Issue' ;
 	 		
 
 	 		// 寫入發票資訊到備註中
@@ -893,7 +893,7 @@ class WC_ALLPayinvoice {
 	 		$HashIV 		= $aConfig_Invoice['wc_allpay_invoice_hashiv'] ;
 	 		$Invoice_Url 		= '' ;
 
-	 		$Invoice_Url 		= ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.opay.tw/Invoice/IssueInvalid'  : 'https://einvoice.opay.tw/Invoice/IssueInvalid' ;
+	 		$Invoice_Url 		= ($aConfig_Invoice['wc_allpay_invoice_testmode'] == 'enable_testmode') ? 'https://einvoice-stage.allpay.com.tw/Invoice/IssueInvalid'  : 'https://einvoice.allpay.com.tw/Invoice/IssueInvalid' ;
 
 	 		// 寫入發票資訊到備註中
 	 		$sInvoice_Info = '' ;
